@@ -1,0 +1,13 @@
+{
+  "name": "Naver Main News Redirector",
+  "version": "0.1",
+  "description": "네이버 메인 뉴스 기사를 편집 기사로 보내줍니다.",
+  "content_scripts": [
+    {
+      "all_frames": true,
+      "js": [ "jquery.min.js", "main.js" ],
+      "matches": [ "http://www.naver.com/" ]
+    }
+  ],
+  "permissions": [ "tabs" ]
+}
