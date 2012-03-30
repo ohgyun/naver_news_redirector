@@ -9,5 +9,5 @@
       "matches": [ "http://www.naver.com/" ]
     }
   ],
-  "permissions": [ "tabs" ]
+  "permissions": [ "tabs","<all_urls>" ]  
 }
