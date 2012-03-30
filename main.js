@@ -1,68 +1,113 @@
-(
-function() {
-	var READYSTATE_UNINITIALIZED = 0;
-	var READYSTATE_LOADING = 1;
-	var READYSTATE_LOADED = 2;
-	var READYSTATE_INTERACTIVE = 3;
-	var READYSTATE_COMPLETE = 4;
+(function() {
+	var SEARCH_API_URL = 'http://news.naver.com/main/search/search.nhn',
+		IFRAME_NAME = 'naver-news-redirector-ext-iframe';
 
-	// jquery object
-	$castWrap = $('#cast_articles'),
-	SEARCH_DOCUMENT_URL = 'http://news.naver.com/main/search/search.nhn?query=';
+	init();
 
 	function init() {
 		overrideNewsClickEvent();
 	}
 
 	function overrideNewsClickEvent() {
-		$castWrap.delegate('a', 'click', function(e) {
+		$('#cast_articles').delegate('a', 'click', function(e) {
 			moveToEditedPage($(this));
 			e.preventDefault();
-
 		});
 	}
 
 	function moveToEditedPage($a) {
+		Message.loading();
 		var title = getTitle($a);
-		console.log(title);
-
-		var xmlHttpObj = new XMLHttpRequest();
-
-		if (xmlHttpObj) {
-			// title EUC-KR 전환 필요.
-			var url = SEARCH_DOCUMENT_URL
-					+ title;
-			console.log(url);
-
-			xmlHttpObj.open("GET", url, true);
-			xmlHttpObj.onreadystatechange = function() {
-				if (xmlHttpObj.readyState == READYSTATE_COMPLETE) {
-					// console.log(xmlHttpObj.responseText);
-					var htmlTXT = xmlHttpObj.responseText;
-					var el = $(htmlTXT).find(".in_naver");
-					console.log(el);
-					if(el.length>0 && el[0].href!=null){
-						document.location.href = el[0].href;
-					}else{
-						alert("fail to search.");
-					}
-					return;
-				}
-			}
-			xmlHttpObj.send(null);
-		}
-
+		var $iframe = createTemporaryIframe();
+		setIframeOnloadHandler($iframe);
+		createFormAndSubmitToIframe(title);
 	}
 
 	function getTitle($a) {
-		var title = $a.text() || $a.find('img').attr('alt'); // ?대?吏??
-																// ?ы븿??寃쎌슦 alt
-																// ?띿꽦??媛?졇?⑤떎.
-		// ?댁뒪 ?쒕퉬?ㅼ뿉?쒕뒗 怨듬갚??+濡???껜?쒕떎.
-		title = title.replace(/\s/g, '+');
+		var title = $a.text() ||
+				$a.find('img').attr('alt'); // 이미지를 클릭한 경우 alt를 가져온다.
+		title = title.replace(/\s/g, '+'); // 뉴스 서비스는 공백을 +로 대체한다.
 		return title;
 	}
+	
+	function createTemporaryIframe() {
+		var $iframe = $('<iframe>')
+			.attr('name', IFRAME_NAME)
+			.appendTo(document.body);
+		return $iframe;
+	}	
 
-	init();
+	function setIframeOnloadHandler($iframe) {
+		$iframe.load(function () {
+			var $result = $(this).contents().find('.in_naver'),
+				firstResult = $result[0];
 
+			if (firstResult) {
+				Message.found();
+				parent.location.href = firstResult.href;
+			} else {
+				Message.notFound();
+			}
+			
+			$(this).remove();
+		});
+	}			
+
+	function createFormAndSubmitToIframe(title) {
+		$('<form>')
+			.attr('action', SEARCH_API_URL) 
+			.attr('target', IFRAME_NAME)
+			.attr('method', 'post')
+			.attr('accept-charset', 'euc-kr')
+			.append(createSearchQuery(title))
+			.submit();
+	}
+
+	function createSearchQuery(title) {
+		return $('<input>')
+			.attr('type', 'hidden')
+			.attr('name', 'query')
+			.attr('value', title);
+	}
+
+
+	var Message = (function () {
+
+		var timer = null,
+			MESSAGE_ELEMENT_ID = 'naver-news-redirector-ext-message'
+
+		createMessageElement();
+
+		function createMessageElement() {
+			$('<span>')
+				.attr('id', MESSAGE_ELEMENT_ID)
+				.css('margin-left', '20px')
+				.css('color', 'red')
+				.appendTo('#cast_action');
+		}
+
+		function print (msg) {
+			clearTimeout(timer);
+
+			var $msg = $('#' + MESSAGE_ELEMENT_ID);
+			$msg.text(msg);
+
+			timer = setTimeout(function () {
+				$msg.empty();
+			}, 5000);	
+		}
+			
+		return {
+			loading: function () {
+				print('편집 기사를 찾는 중입니다...');
+			},
+			notFound: function () {
+				print('뉴스에 해당하는 편집 기사가 없습니다.');
+			},
+			found: function () {
+				print('해당 편집 기사로 이동합니다.');
+			}
+		};	
+
+	}());
 }());
