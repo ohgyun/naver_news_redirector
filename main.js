@@ -99,13 +99,13 @@
 			
 		return {
 			loading: function () {
-				print('편집 기사를 찾는 중입니다...');
+				print('네이버 뉴스에서 기사를 찾는 중입니다...');
 			},
 			notFound: function () {
-				print('뉴스에 해당하는 편집 기사가 없습니다.');
+				print('기사를 찾지 못했습니다.');
 			},
 			found: function () {
-				print('해당 편집 기사로 이동합니다.');
+				print('해당 기사로 이동합니다.');
 			}
 		};	
 
