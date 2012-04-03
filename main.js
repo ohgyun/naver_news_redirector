@@ -1,11 +1,23 @@
 (function() {
 	var SEARCH_API_URL = 'http://news.naver.com/main/search/search.nhn',
-		IFRAME_NAME = 'naver-news-redirector-ext-iframe';
-
+		IFRAME_NAME = 'naver-news-redirector-ext-iframe',
+		gOptAutomove, gOptNewwin;
+				
 	init();
 
 	function init() {
+	  initOptionInformation();
 		overrideNewsClickEvent();
+	}
+	
+	function initOptionInformation() {
+	  chrome.extension.sendRequest({
+	    method: 'getOptions'
+	  }, function (response) {
+	    var options = response.options || {};
+	    gOptAutomove = options.automove === 'true';
+	    gOptNewwin = options.newwin === 'true'; 
+	  });
 	}
 
 	function overrideNewsClickEvent() {
@@ -19,7 +31,7 @@
 		Message.loading();
 		var title = getTitle($a);
 		var $iframe = createTemporaryIframe();
-		setIframeOnloadHandler($iframe);
+		setIframeOnloadHandler($iframe, $a);
 		createFormAndSubmitToIframe(title);
 	}
 
@@ -37,21 +49,41 @@
 		return $iframe;
 	}	
 
-	function setIframeOnloadHandler($iframe) {
+	function setIframeOnloadHandler($iframe, $a) {
 		$iframe.load(function () {
 			var $result = $(this).contents().find('.in_naver'),
 				firstResult = $result[0];
 
 			if (firstResult) {
-				Message.found();
-				parent.location.href = firstResult.href;
+			  onResultFound(firstResult.href);
 			} else {
-				Message.notFound();
+			  onResultNotFound($a.attr('href'));				
 			}
 			
 			$(this).remove();
 		});
 	}			
+	
+	function onResultFound(resultUrl) {
+	  Message.found();
+	  openPage(resultUrl);
+	}
+	
+	function openPage(url) {
+	  if (gOptNewwin) {
+	    window.open(url); 
+	  } else {
+	    location.href = url; 
+	  }
+	}
+	
+	function onResultNotFound(originalUrl) {
+	  if (gOptAutomove) {
+	    openPage(originalUrl); 
+	  } else {
+	    Message.notFound(originalUrl, gOptNewwin);
+	  }
+	}
 
 	function createFormAndSubmitToIframe(title) {
 		$('<form>')
@@ -81,7 +113,7 @@
 		function createMessageElement() {
 			$('<span>')
 				.attr('id', MESSAGE_ELEMENT_ID)
-				.css('margin-left', '20px')
+				.css('margin-left', '10px')
 				.css('color', 'red')
 				.appendTo('#cast_action');
 		}
@@ -90,7 +122,7 @@
 			clearTimeout(timer);
 
 			var $msg = $('#' + MESSAGE_ELEMENT_ID);
-			$msg.text(msg);
+			$msg.html(msg);
 
 			timer = setTimeout(function () {
 				$msg.empty();
@@ -101,8 +133,9 @@
 			loading: function () {
 				print('네이버 뉴스에서 기사를 찾는 중입니다...');
 			},
-			notFound: function () {
-				print('기사를 찾지 못했습니다.');
+			notFound: function (originalUrl, isNewwin) {
+			  var target = isNewwin ? '_blank' : '_self';
+				print('기사를 찾지 못했습니다. (<a href="' + originalUrl + '" target="' + target + '">원본기사보기</a>)');
 			},
 			found: function () {
 				print('해당 기사로 이동합니다.');

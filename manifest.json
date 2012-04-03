@@ -1,6 +1,6 @@
 {
   "name": "Naver Main News Redirector",
-  "version": "0.1",
+  "version": "0.2",
   "description": "네이버 메인 뉴스 기사를 편집 기사로 보내줍니다.",
   "content_scripts": [
     {
@@ -9,5 +9,9 @@
       "matches": [ "http://www.naver.com/" ]
     }
   ],
+  "options_page": "options.html",
+  "background": {
+    "page": "background.html"
+  },
   "permissions": [ "tabs","<all_urls>" ]  
 }

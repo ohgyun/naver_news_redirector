@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<title>Naver News Redirector Extension</title>
+<script>
+  chrome.extension.onRequest.addListener(function (request, sender, sendResponse) {
+    if (request.method === 'getOptions') {
+      sendResponse({
+        'options': {
+          'newwin': localStorage['opt-newwin'],
+          'automove': localStorage['opt-automove']
+        }
+      });
+      
+    } else {
+      sendResponse({}); 
+    }
+  });
+  
+</script>
+</head>
+<body>
+</body>
+</html>
