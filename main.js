@@ -1,5 +1,6 @@
 (function() {
 	var SEARCH_API_URL = 'http://news.naver.com/main/search/search.nhn',
+	  NEWS_WRAPPER_SELECTOR = '#cast_articles, div.news ul', // 뉴스캐스트, 검색결과
 		IFRAME_NAME = 'naver-news-redirector-ext-iframe',
 		gOptAutomove, gOptNewwin;
 				
@@ -21,8 +22,10 @@
 	}
 
 	function overrideNewsClickEvent() {
-		$('#cast_articles').delegate('a', 'click', function(e) {
-			moveToEditedPage($(this));
+		$(NEWS_WRAPPER_SELECTOR).delegate('a', 'click', function(e) {
+		  var $a = $(this);
+		  Message.setPosition($a);
+			moveToEditedPage($a);
 			e.preventDefault();
 		});
 	}
@@ -106,30 +109,65 @@
 	var Message = (function () {
 
 		var timer = null,
-			MESSAGE_ELEMENT_ID = 'naver-news-redirector-ext-message'
+			MESSAGE_ELEMENT_ID = 'naver-news-redirector-ext-message',
+			$layer = null,
+			timeLayerOpened = 0;
 
 		createMessageElement();
+		bindHideEvent();
 
 		function createMessageElement() {
-			$('<span>')
+			$layer = $('<div>')
 				.attr('id', MESSAGE_ELEMENT_ID)
-				.css('margin-left', '10px')
-				.css('color', 'red')
-				.appendTo('#cast_action');
+				.css('display', 'none')
+				.css('position', 'absolute')
+				.css('padding', '3px 8px')
+				.css('border', '1px solid #d2d2d2')
+				.css('border-top', '2px solid #999')
+				.css('-webkit-border-radius', '0px 0px 10px 10px')
+				.css('color', '#333')
+				.css('background', '#fafafa')
+				.css('z-index', '100000')
+				.appendTo(document.body);
 		}
 
 		function print (msg) {
 			clearTimeout(timer);
 
-			var $msg = $('#' + MESSAGE_ELEMENT_ID);
-			$msg.html(msg);
-
-			timer = setTimeout(function () {
-				$msg.empty();
-			}, 5000);	
+      show(msg);
+			
+			timer = setTimeout(hide, 3000);
+		}
+		
+		function show(msg) {
+		  $layer.html(msg).show();
+		  timeLayerOpened = new Date().getTime();
+		}
+		
+		function hide() {
+		  $layer.hide().empty();
+		}
+		
+		function bindHideEvent() {
+		  $(document.body).click(function () {
+		    // 클릭할 경우, 열려진 레이어를 닫는다.
+		    // 기사 제목을 클릭했을 때 이벤트가 버블링 되어 올라오기 때문에 딜레이를 둔다.
+		    var diff = new Date().getTime() - timeLayerOpened;
+		    if (diff > 100) {
+		      hide(); 
+		    }
+		  }); 
 		}
 			
 		return {
+		  setPosition: function ($a) {
+		    var offset = $a.offset();
+		    
+		    $layer
+		      .css('top', offset.top + 15)
+		      .css('left', offset.left);
+		      // jquery의 offset(value)을 사용하는 경우, 위치를 제대로 찾지 못하는 버그가 있다.
+		  },
 			loading: function () {
 				print('네이버 뉴스에서 기사를 찾는 중입니다...');
 			},

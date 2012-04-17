@@ -1,12 +1,12 @@
 {
   "name": "Naver Main News Redirector",
-  "version": "0.2",
-  "description": "네이버 메인 뉴스 기사를 편집 기사로 보내줍니다.",
+  "version": "1.0",
+  "description": "네이버에 노출되는 언론사 기사를 네이버 뉴스로 보내줍니다.",
   "content_scripts": [
     {
       "all_frames": true,
       "js": [ "jquery.min.js", "main.js" ],
-      "matches": [ "http://www.naver.com/" ]
+      "matches": [ "http://www.naver.com/", "http://search.naver.com/*" ]
     }
   ],
   "options_page": "options.html",
