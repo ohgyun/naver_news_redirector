@@ -6,7 +6,7 @@
     {
       "all_frames": true,
       "js": [ "jquery.min.js", "main.js" ],
-      "matches": [ "http://www.naver.com/", "http://search.naver.com/*" ]
+      "matches": [ "http://www.naver.com/", "http://search.naver.com/*", "http://news.naver.com/*" ]
     }
   ],
   "options_page": "options.html",

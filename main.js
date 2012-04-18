@@ -1,6 +1,11 @@
 (function() {
 	var SEARCH_API_URL = 'http://news.naver.com/main/search/search.nhn',
-	  NEWS_WRAPPER_SELECTOR = '#cast_articles, div.news ul', // 뉴스캐스트, 검색결과
+	  NEWS_WRAPPER_SELECTOR = [
+	    '#cast_articles', // 메인 뉴스캐스트
+	    'div.news ul', // 검색 결과
+	    'div.article_body', // 뉴스 기사 내
+	    'div.article' // 스포츠 기사 내
+	  ].join(','),
 		IFRAME_NAME = 'naver-news-redirector-ext-iframe',
 		gOptAutomove, gOptNewwin;
 				
