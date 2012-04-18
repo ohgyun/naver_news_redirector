@@ -13,5 +13,5 @@
   "background": {
     "page": "background.html"
   },
-  "permissions": [ "tabs","<all_urls>" ]  
+  "permissions": []
 }
