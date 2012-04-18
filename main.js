@@ -1,35 +1,36 @@
 (function() {
+
 	var SEARCH_API_URL = 'http://news.naver.com/main/search/search.nhn',
-	  NEWS_WRAPPER_SELECTOR = [
-	    '#cast_articles', // 메인 뉴스캐스트
-	    'div.news ul', // 검색 결과
-	    'div.article_body', // 뉴스 기사 내
-	    'div.article' // 스포츠 기사 내
-	  ].join(','),
+		NEWS_WRAPPER_SELECTOR = [
+			'#cast_articles', // 메인 뉴스캐스트
+			'div.news ul', // 검색 결과
+			'div.article_body', // 뉴스 기사 내
+			'div.article' // 스포츠 기사 내
+		].join(','),
 		IFRAME_NAME = 'naver-news-redirector-ext-iframe',
 		gOptAutomove, gOptNewwin;
 				
 	init();
 
 	function init() {
-	  initOptionInformation();
+		initOptionInformation();
 		overrideNewsClickEvent();
 	}
 	
 	function initOptionInformation() {
-	  chrome.extension.sendRequest({
-	    method: 'getOptions'
-	  }, function (response) {
-	    var options = response.options || {};
-	    gOptAutomove = options.automove === 'true';
-	    gOptNewwin = options.newwin === 'true'; 
-	  });
+		chrome.extension.sendRequest({
+			method: 'getOptions'
+		}, function (response) {
+			var options = response.options || {};
+			gOptAutomove = options.automove === 'true';
+			gOptNewwin = options.newwin === 'true'; 
+		});
 	}
 
 	function overrideNewsClickEvent() {
 		$(NEWS_WRAPPER_SELECTOR).delegate('a', 'click', function(e) {
-		  var $a = $(this);
-		  Message.setPosition($a);
+			var $a = $(this);
+			Message.setPosition($a);
 			moveToEditedPage($a);
 			e.preventDefault();
 		});
@@ -63,9 +64,9 @@
 				firstResult = $result[0];
 
 			if (firstResult) {
-			  onResultFound(firstResult.href);
+				onResultFound(firstResult.href);
 			} else {
-			  onResultNotFound($a.attr('href'));				
+				onResultNotFound($a.attr('href'));				
 			}
 			
 			$(this).remove();
@@ -73,24 +74,26 @@
 	}			
 	
 	function onResultFound(resultUrl) {
-	  Message.found();
-	  openPage(resultUrl);
+    Tracker.found();
+		Message.found();
+		openPage(resultUrl);
 	}
 	
 	function openPage(url) {
-	  if (gOptNewwin) {
-	    window.open(url); 
-	  } else {
-	    location.href = url; 
-	  }
+		if (gOptNewwin) {
+			window.open(url); 
+		} else {
+			location.href = url; 
+		}
 	}
 	
 	function onResultNotFound(originalUrl) {
-	  if (gOptAutomove) {
-	    openPage(originalUrl); 
-	  } else {
-	    Message.notFound(originalUrl, gOptNewwin);
-	  }
+    Tracker.notFound();
+		if (gOptAutomove) {
+			openPage(originalUrl); 
+		} else {
+			Message.notFound(originalUrl, gOptNewwin);
+		}
 	}
 
 	function createFormAndSubmitToIframe(title) {
@@ -109,7 +112,6 @@
 			.attr('name', 'query')
 			.attr('value', title);
 	}
-
 
 	var Message = (function () {
 
@@ -146,39 +148,39 @@
 		}
 		
 		function show(msg) {
-		  $layer.html(msg).show();
-		  timeLayerOpened = new Date().getTime();
+			$layer.html(msg).show();
+			timeLayerOpened = new Date().getTime();
 		}
 		
 		function hide() {
-		  $layer.hide().empty();
+			$layer.hide().empty();
 		}
 		
 		function bindHideEvent() {
-		  $(document.body).click(function () {
-		    // 클릭할 경우, 열려진 레이어를 닫는다.
-		    // 기사 제목을 클릭했을 때 이벤트가 버블링 되어 올라오기 때문에 딜레이를 둔다.
-		    var diff = new Date().getTime() - timeLayerOpened;
-		    if (diff > 100) {
-		      hide(); 
-		    }
-		  }); 
+			$(document.body).click(function () {
+				// 클릭할 경우, 열려진 레이어를 닫는다.
+				// 기사 제목을 클릭했을 때 이벤트가 버블링 되어 올라오기 때문에 딜레이를 둔다.
+				var diff = new Date().getTime() - timeLayerOpened;
+				if (diff > 100) {
+					hide(); 
+				}
+			}); 
 		}
 			
 		return {
-		  setPosition: function ($a) {
-		    var offset = $a.offset();
-		    
-		    $layer
-		      .css('top', offset.top + 15)
-		      .css('left', offset.left);
-		      // jquery의 offset(value)을 사용하는 경우, 위치를 제대로 찾지 못하는 버그가 있다.
-		  },
+			setPosition: function ($a) {
+				var offset = $a.offset();
+				
+				$layer
+					.css('top', offset.top + 15)
+					.css('left', offset.left);
+					// jquery의 offset(value)을 사용하는 경우, 위치를 제대로 찾지 못하는 버그가 있다.
+			},
 			loading: function () {
 				print('네이버 뉴스에서 기사를 찾는 중입니다...');
 			},
 			notFound: function (originalUrl, isNewwin) {
-			  var target = isNewwin ? '_blank' : '_self';
+				var target = isNewwin ? '_blank' : '_self';
 				print('기사를 찾지 못했습니다. (<a href="' + originalUrl + '" target="' + target + '">원본기사보기</a>)');
 			},
 			found: function () {
@@ -187,4 +189,19 @@
 		};	
 
 	}());
+
+  // Track user logs
+  var Tracker = {
+    found: function () {
+  		chrome.extension.sendRequest({
+	  		method: 'trackFound'
+	  	});
+    },
+    notFound: function () {
+      chrome.extension.sendRequest({
+        method: 'trackNotFound'
+      });
+    }
+  };
+
 }());

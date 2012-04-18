@@ -11,7 +11,8 @@
   ],
   "options_page": "options.html",
   "background": {
-    "page": "background.html"
+    "scripts": ["background.js"]
   },
-  "permissions": []
+  "permissions": [],
+  "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'"
 }
