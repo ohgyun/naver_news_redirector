@@ -49,46 +49,13 @@ label {
 <body>
 <div id="header"><h1>Naver News Redirector Option</h1></div>
 <div class="section-header">기사 열기 방법</div>
-<p class="section-body"><input type="checkbox" id="opt-newwin" onclick="markDirty()"><label for="opt-newwin">기사를 항상 새창으로 열기</label></p>
-<p class="section-body"><input type="checkbox" id="opt-automove" onclick="markDirty()"><label for="opt-automove">편집 기사를 찾지 못하면 원본 기사로 바로 이동</label></p>
+<p class="section-body"><input type="checkbox" id="opt-newwin"><label for="opt-newwin">기사를 항상 새창으로 열기</label></p>
+<p class="section-body"><input type="checkbox" id="opt-automove"><label for="opt-automove">편집 기사를 찾지 못하면 원본 기사로 바로 이동</label></p>
 <div id="footer">
-  <button id="save-button" style="font-weight:bold" onclick="save()">저장</button>
-  <button onclick="init()">취소</button>
+  <button id="save-button" style="font-weight:bold">저장</button>
+  <button id="cancel-button">취소</button>
 </div>
-
-<script>
-var saveButton, chkNewwin, chkAutomove;
-
-init();
-
-function init() {
-  saveButton = document.getElementById("save-button");
-  chkNewwin = document.getElementById("opt-newwin");
-  chkAutomove = document.getElementById("opt-automove");
-  
-  chkNewwin.checked = localStorage[getStorageKey(chkNewwin)] === "true";
-  chkAutomove.checked = localStorage[getStorageKey(chkAutomove)] === "true";
-  markClean();
-}
-
-function getStorageKey(el) {
-  return el.id;
-}
-
-function save() {
-  localStorage[getStorageKey(chkNewwin)] = chkNewwin.checked;
-  localStorage[getStorageKey(chkAutomove)] = chkAutomove.checked;
-  markClean();
-}
-
-function markDirty() {
-  saveButton.disabled = false;
-}
-
-function markClean() {
-  saveButton.disabled = true;
-}
-</script>
-  
+<script src="jquery.min.js"></script>
+<script src="options.js"></script>
 </body>
 </html>
