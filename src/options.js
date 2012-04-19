@@ -1,3 +1,18 @@
+// Google Analytics Code
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-30985671-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+  var ga = document.createElement('script');
+  ga.type = 'text/javascript';
+  ga.async = true;
+  ga.src = 'https://ssl.google-analytics.com/ga.js';
+  var s = document.getElementsByTagName('script')[0];
+  s.parentNode.insertBefore(ga, s);
+})();
+
+
 var $saveButton, $cancelButton, $chkNewwin, $chkAutomove;
 
 init();
@@ -28,8 +43,11 @@ function reset() {
 }
 
 function updateCheckboxStatus() {
-  $chkNewwin.attr('checked', localStorage[getStorageKey($chkNewwin)] === 'true');
-  $chkAutomove.attr('checked', localStorage[getStorageKey($chkAutomove)] === 'true');
+  var bNewwin = localStorage[getStorageKey($chkNewwin)] === 'true';
+  var bAutomove = localStorage[getStorageKey($chkAutomove)] === 'true';
+    
+  $chkNewwin.attr('checked', bNewwin);
+  $chkAutomove.attr('checked', bAutomove);
 }
 
 function getStorageKey($el) {
@@ -37,9 +55,31 @@ function getStorageKey($el) {
 }
 
 function save() {
-  localStorage[getStorageKey($chkNewwin)] = ($chkNewwin.attr('checked') === 'checked');
-  localStorage[getStorageKey($chkAutomove)] = ($chkAutomove.attr('checked') === 'checked');
+  saveNewwin();
+  saveAutomove();
   markClean();
+}
+
+function saveNewwin() {
+  var bNewwin = $chkNewwin.attr('checked') === 'checked';
+  localStorage[getStorageKey($chkNewwin)] = bNewwin;
+  
+  if (bNewwin) {
+    _gaq.push(['_trackEvent', 'newwin-option-on', 'clicked']);
+  } else {
+     _gaq.push(['_trackEvent', 'newwin-option-off', 'clicked']);
+  }
+}
+
+function saveAutomove() {
+  var bAutomove = $chkAutomove.attr('checked') === 'checked';
+  localStorage[getStorageKey($chkAutomove)] = bAutomove; 
+  
+  if (bAutomove) {
+    _gaq.push(['_trackEvent', 'automove-option-on', 'clicked']);
+  } else {
+    _gaq.push(['_trackEvent', 'automove-option-off', 'clicked']);
+  }
 }
 
 function getCheckValue($el) {

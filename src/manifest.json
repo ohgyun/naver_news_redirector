@@ -1,6 +1,6 @@
 {
   "name": "네이버 뉴스로 보기 (Naver News Redirector)",
-  "version": "1.4",
+  "version": "1.5",
   "description": "네이버에 노출되는 언론사 기사를 네이버 뉴스로 보내줍니다.",
   "icons": {
     "48": "icon48.png"
